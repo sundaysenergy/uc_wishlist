@@ -2,7 +2,9 @@
 // $Id$
 
 /**
- * this file has been hacked from uc_car/uc_cart_checkout_panes.inc
+ * @file
+ * Address panes for wish list settings form.
+ * Adapted from uc_cart/uc_cart_checkout_panes.inc
  */
 
 /**
@@ -11,10 +13,6 @@
 function uc_wishlist_address_pane($op, &$arg1, $arg2) {
   global $user;
 
-/*  if (!uc_cart_is_shippable() && variable_get('uc_cart_delivery_not_shippable', TRUE)) {
-    return;
-  }
-*/
   switch ($op) {
     case 'view':
       $description = t('Enter your delivery address and information here.');
@@ -55,6 +53,9 @@ function uc_wishlist_address_pane($op, &$arg1, $arg2) {
           $country_id = $arg1->delivery_country;
         }
         $contents['delivery_zone'] = uc_zone_select(uc_get_field_name('zone'), $arg1->delivery_zone, NULL, $country_id, 'name', uc_address_field_required('zone'));
+        if (isset($_POST['panes']) && count($contents['delivery_zone']['#options']) == 1) {
+          $contents['delivery_zone']['#required'] = FALSE;
+        }
       }
       if (uc_address_field_enabled('postal_code')) {
         $contents['delivery_postal_code'] = uc_textfield(uc_get_field_name('postal_code'), $arg1->delivery_postal_code, uc_address_field_required('postal_code'), NULL, 10, 10);

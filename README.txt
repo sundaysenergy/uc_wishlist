@@ -1,18 +1,18 @@
 /**
  * uc_wishlist: Wish List / Gift Registry module for Ubercart
  *
- * developed by Joe Turgeon (http://arithmetric.com)
- * sponsored by Sundays Energy (http://sundaysenergy.com)
- * version 0.5 (January/23/2008)
- * licensed under GPLv2
+ * Developed by Joe Turgeon (http://arithmetric.com)
+ * Sponsored by Sundays Energy (http://sundaysenergy.com)
+ * Version 0.7 (November/11/2008)
+ * Licensed under GPLv2
  */
 
 1. ABOUT
 
-uc_wishlist is a module that adds wish list/gift registry support to
-Ubercart.
+uc_wishlist is a module that adds wish list/gift registry functionality
+to Ubercart.
 
-This module has been tested with Ubercart beta 2.
+This module has been tested with Ubercart 1.6.
 
 2. INSTALLATION
 
@@ -28,8 +28,8 @@ Drupal module administration page.
 3. FEATURES
 
 This module enables users to create a gift list for use as a personal 
-shopping list or a public gift registry. An 'add to wish list' button
-is added wherever there is an 'add to cart' button.
+shopping list or a public gift registry. An 'Add to wish list' button
+is added wherever there is an 'Add to cart' button.
 
 4. DEVELOPMENT
 
@@ -40,8 +40,8 @@ product id) is added to the data array. When a sale is completed
 (and the order state changes to post_checkout) the order is checked 
 for items that came from a wish list. If any are found, the corresponding
 wish list items are updated, and information about the order (the order
-id, order product id, user id, and time) are added to the purchase field in
-the wish list products table.
+id, order product id, user id, and time) are added to the purchase field
+in the wish list products table.
 
 The module introduces two new tables:
 
@@ -61,5 +61,5 @@ changed (int) -- timestamp of last modification
 data (text) -- serialized array of product attributes and data
 purchase (text) -- serialized array of purchase records
 
+Please send questions, comments, or suggestions to: joe @ thirdavedesign.com
 
-Please send questions, comments, or suggestions to: joe @ sundaysenergy.com

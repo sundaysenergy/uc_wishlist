@@ -2,7 +2,9 @@
 // $Id$
 
 /**
- * Ubercart uc_wishlist.module schema
+ * @file
+ * uc_wishlist installation routine. Creates uc_wishlists and
+ * uc_wishlist_products tables.
  */
 function uc_wishlist_install() {
   switch ($GLOBALS['db_type']) {

@@ -1,0 +1,30 @@
+/**
+ * To-do: feature requests, etc.
+ *
+ * Please contact me if you'd like to sponsor the development
+ * of any of these features.
+ */
+
+-- notifications: send wish list owner notification when someone buys
+something from the list
+
+-- send a wish list to friends, etc.
+
+-- add support for sorting items on the wish list
+
+-- separate hook_search from custom search page (see code)
+
+-- add clean up of anonymous/expired wish lists
+
+-- add setting for default length of wish lists
+
+-- handle multiple wish lists
+
+-- add note of 'gift to user' that appears on receipts
+
+-- allow user to make list private (password protected) or use username 
+instead of real name
+
+-- option of whether to display all lists on the search page (or require
+query)
+
