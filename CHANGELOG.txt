@@ -1,0 +1,33 @@
+CHANGELOG for uc_wishlist module
+
+ver 0.5 (01/23/2008)
+-- removed footer/summary row from wish list
+-- improved search code for finding wish lists based on user name
+-- added button for adding each item on a wish list to the cart
+-- added more notifications for saving and completing wish lists
+-- added settings: default wish list title, and whether to allow anonymous
+ users to create wish lists
+-- added admin settings and manage page (to view/delete wish lists)
+-- fixed error caused in search settings [thanks to KillerJerseys]
+-- fixed block setting for hiding block if empty [thanks to KillerJerseys]
+
+ver 0.4 (01/13/2008)
+-- added support for finding wish lists through drupal search
+ (using hook_search) [patch from jrust]
+-- added notice to anonymous users for saving wish list [patch from jrust]
+-- wish list data deleted when user is deleted [patch from jrust]
+-- fixed product images on wish list [patch from jrust]
+-- added uninstall support
+-- changed module package to 'Ubercart - extra'
+
+ver 0.3 (10/24/2007)
+-- added CHANGELOG.txt LICENSE.txt and README.TXT
+-- return wish lists for user profile only (through uc_wishlist_user hook)
+  only if the user has at least one wish list
+
+ver 0.2 (10/18/2007)
+-- replaced patch for uc_cart with form_alter hook on uc_cart_checkout_form
+
+ver 0.1 (10/18/2007)
+-- initial release of uc_wishlist
+
