@@ -1,0 +1,170 @@
+diff -rupN uc_wishlist/uc_wishlist.admin.inc AtHomeStore/uc_wishlist/uc_wishlist.admin.inc
+--- uc_wishlist/uc_wishlist.admin.inc	2009-03-27 11:08:33.000000000 -0500
++++ AtHomeStore/uc_wishlist/uc_wishlist.admin.inc	2009-06-21 10:47:29.000000000 -0500
+@@ -23,6 +23,25 @@ function uc_wishlist_admin_settings_form
+     '#default_value' => variable_get('uc_wishlist_allow_anonymous', FALSE),
+     '#description' => t('Check this box to allow anonymous users to create wish lists. If not checked, anonymous visitors will be prompted to login or register before creating a wish list.'),
+   );
++  $form['uc_wishlist_combined_addcart_group'] = array(
++    '#type' => 'fieldset',
++    '#title' => t('Combined Add Wishlist to Cart Button'),
++    '#description' => t(''),
++    '#collapsible' => TRUE,
++    '#collapsed' => FALSE,
++  );
++  $form['uc_wishlist_combined_addcart_group']['uc_wishlist_show_combined_addcart_button'] = array(
++    '#type' => 'checkbox',
++    '#title' => t('Use single button to add wishlist items to cart'),
++    '#description' => t('If this option is enabled the wishlist display will have a single "Add To Cart" button for all items in the wishlist. If disabled every item in the wishlist will have its own "Add to Cart" button'),
++    '#default_value' => variable_get('uc_wishlist_show_combined_addcart_button', FALSE),
++  );
++  $form['uc_wishlist_combined_addcart_group']['uc_wishlist_combined_addcart_text'] = array(
++    '#type' => 'textfield',
++    '#title' => t('Combined Addcart Button Text'),
++    '#default_value' => variable_get('uc_wishlist_combined_addcart_text', 'Add Wishlist Quantities to Cart'),
++    '#description' => t('Button text for the combined AddCart button for wishlists. This is ONLY relevant if the above option (Use single button to add wishlist items to cart) is enabled. Otherwise this setting does nothing!'),
++  );
+ 
+   // TODO: add uc_wishlist_default_length
+ 
+diff -rupN uc_wishlist/uc_wishlist.pages.inc AtHomeStore/uc_wishlist/uc_wishlist.pages.inc
+--- uc_wishlist/uc_wishlist.pages.inc	2009-03-27 11:08:33.000000000 -0500
++++ AtHomeStore/uc_wishlist/uc_wishlist.pages.inc	2009-06-21 11:12:31.000000000 -0500
+@@ -269,6 +269,7 @@ function uc_wishlist_view_form($form_sta
+     $element['wantqty'] = array(
+       '#type' => 'textfield',
+       '#default_value' => $item->qty,
++      '#value' => $item->qty,   // Necessary with Disabled
+       '#size' => 5,
+       '#maxlength' => 6,
+       '#disabled' => $own ? FALSE : TRUE
+@@ -276,26 +277,36 @@ function uc_wishlist_view_form($form_sta
+     $element['haveqty'] = array(
+       '#type' => 'textfield',
+       '#default_value' => $item->haveqty,
++      '#value' => $item->haveqty,   // Necessary with Disabled
+       '#size' => 5,
+       '#maxlength' => 6,
+       '#disabled' => TRUE
+     );
++    // Why not just limit the user to the range of possible options?
+     $element['qty'] = array(
+-      '#type' => 'textfield',
++      '#type' => 'select',
++      '#options' => range(0,$item->qty),
+       '#default_value' => $item->qty - $item->haveqty > 0 ? $item->qty - $item->haveqty : 1,
+-      '#size' => 5,
+-      '#maxlength' => 6,
+     );
+ 
+-    $element['addcart'] = array(
+-      '#type' => 'submit',
+-      '#name' => 'addcart-'. $item->wpid,
+-      '#value' => t('Add to cart'),
+-    );
++    if (!variable_get('uc_wishlist_show_combined_addcart_button', null)) {
++      $element['addcart'] = array(
++        '#type' => 'submit',
++        '#name' => 'addcart-'. $item->wpid,
++        '#value' => t('Add to cart'),
++      );
++    } 
+ 
+     $form['items'][] = $element;
+   }
+ 
++  if (variable_get('uc_wishlist_show_combined_addcart_button', null)) {
++    $form['addcart'] = array(
++      '#type' => 'submit',
++      '#value' => t('Add Wishlist Quantities to Cart'),
++    );
++  }
++
+   $form['wid'] = array(
+     '#type' => 'hidden',
+     '#value' => $wid,
+@@ -320,7 +331,15 @@ function theme_uc_wishlist_view_form($fo
+ 
+   $own = isset($form['own']) ? TRUE : FALSE;
+ 
+-  $header = array(t('Products'), '', t('Wanted'), t('Have'), t('Qty.'), t('Purchase'), array('data' => t('Total'), 'align' => 'right'));
++  $show_combined_addcart_button = FALSE;
++  if (variable_get('uc_wishlist_show_combined_addcart_button', null)) {
++    $show_combined_addcart_button = TRUE;
++  }
++  if ($show_combined_addcart_button) {
++    $header = array(t('Products'), '', t('Wanted'), t('Have'), t('Qty.'), array('data' => t('Total'), 'align' => 'right'));
++  } else {
++    $header = array(t('Products'), '', t('Wanted'), t('Have'), t('Qty.'), t('Purchase'), array('data' => t('Total'), 'align' => 'right'));
++  }
+ 
+   if ($own) {
+     array_unshift($header, t('Remove'));
+@@ -337,9 +356,11 @@ function theme_uc_wishlist_view_form($fo
+       $form['items'][$i]['wantqty'] ? drupal_render($form['items'][$i]['wantqty']) : '',
+       $form['items'][$i]['haveqty'] ? drupal_render($form['items'][$i]['haveqty']) : '',
+       $form['items'][$i]['qty'] ? drupal_render($form['items'][$i]['qty']) : '',
+-      $form['items'][$i]['addcart'] ? drupal_render($form['items'][$i]['addcart']) : '',
+-      array('data' => uc_currency_format($form['items'][$i]['#total']), 'nowrap' => 'nowrap'),
+     );
++    if (!$show_combined_addcart_button) {
++      array_push(&$row, $form['items'][$i]['addcart'] ? drupal_render($form['items'][$i]['addcart']) : '');
++    }
++    array_push(&$row, array('data' => uc_currency_format($form['items'][$i]['#total']), 'nowrap' => 'nowrap'));
+ 
+     if (isset($form['items'][$i]['remove'])) {
+       array_unshift($row, drupal_render($form['items'][$i]['remove']));
+@@ -364,11 +385,17 @@ function uc_wishlist_view_form_validate(
+   // If adding item to cart, check quantities.
+   if ($wpid) {
+     foreach ($form_state['values']['items'] as $key => $item) {
++      /* In case the customer clicks the 'add to cart' for
++       * this item after setting the qty to 0, they should
++       * not get an error, since they probably mean to purchase
++       * this item. So set qty=1 if qty==0
++       */
+       if ($item['wpid'] == $wpid && $item['qty'] == 0) {
+-        $item['qty'] = 1;
++        $item['qty'] = 1; 
+       }
++      
+       if ($item['qty'] && ($item['qty'] + $item['haveqty']) > $item['wantqty']) {
+-        form_set_error($key, t('You have selected to purchase more items than requested.'));
++        form_set_error($key, t('You have selected to purchase more items than requested. '));
+       }
+     }
+   }
+@@ -383,6 +410,12 @@ function uc_wishlist_view_form_submit($f
+ 
+       $form_state['redirect'] = 'wishlist/'. $form_state['values']['wid'];
+     }
++    // Add all items to cart
++    if ($form_state['values']['op'] == $form_state['values']['addcart']) {
++      uc_wishlist_add_items_to_cart((object) $form_state['values']);
++      drupal_set_message(t('The item(s) have been added to your shopping cart.'));
++      $form_state['redirect'] = 'cart';
++    }
+   }
+   else {
+     // Find wish list item associated with 'add to cart' submitted.
+@@ -394,8 +427,18 @@ function uc_wishlist_view_form_submit($f
+ 
+     if ($wpid) {
+       foreach ($form_state['values']['items'] as $key => $item) {
+-        if ($item['wpid'] == $wpid && $item['qty'] == 0) {
+-          $form_state['values']['items'][$key]['qty'] = 1;
++        /*
++         * uc_wishlist_add_items_to_cart() does not have a way
++         * for us to define which specific item we want to purchase.
++         * It takes in the whole form. So we have to unset the
++         * quantities on those elements that we don't want to purchase!
++         */
++        if ($item['wpid'] == $wpid) {
++          if ($item['qty'] == 0) {
++            $form_state['values']['items'][$key]['qty'] = 1;
++          }
++        } else {
++          $form_state['values']['items'][$key]['qty'] = 0;
+         }
+       }
+ 

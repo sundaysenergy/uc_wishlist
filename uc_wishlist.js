@@ -1,73 +1,8 @@
-// $Id$
-
-var copy_box_checked = false;
-
 /**
- * Scan the DOM and display the cancel and continue buttons.
+ * @file
+ * Small helper JS for the registry settings form address.
  */
-$(document).ready(
-  function() {
-    $('.show-onload').show();
-  }
-);
 
-/**
- * When a customer clicks a Next button, expand the next pane, remove the
- * button, and don't let it collapse again.
- */                             
-function uc_cart_next_button_click(button, pane_id, current) {
-  if (current !== 'false') {
-    $('#' + current + '-pane legend a').click();
-  }
-  else {
-    button.disabled = true;
-  }
-
-  if ($('#' + pane_id + '-pane').attr('class').indexOf('collapsed') > -1 && $('#' + pane_id + '-pane').html() !== null) {
-    $('#' + pane_id + '-pane legend a').click();
-  }
-
-  return false;
-}
-
-/**
- * Copy the delivery information to the payment information on the checkout
- * screen if corresponding fields exist.
- */
-function uc_cart_copy_delivery_to_billing(checked) {
-  if (!checked) {
-    $('#billing-pane div.address-pane-table').slideDown();
-    copy_box_checked = false;
-    return false;
-  }
-
-  // Hide the billing information fields.
-  $('#billing-pane div.address-pane-table').slideUp();
-  copy_box_checked = true;
-
-  // Copy over the zone options manually.
-  if ($('#edit-panes-billing-billing-zone').html() != $('#edit-panes-delivery-delivery-zone').html()) {
-    $('#edit-panes-billing-billing-zone').empty().append($('#edit-panes-delivery-delivery-zone').children().clone());
-  }
-
-  // Copy over the information and set it to update if delivery info changes.
-  $('#delivery-pane input, select, textarea').each(
-    function() {
-      if (this.id.substring(0, 28) == 'edit-panes-delivery-delivery') {
-        $('#edit-panes-billing-billing' + this.id.substring(28)).val($(this).val());
-        $(this).change(function () { update_billing_field(this); });
-      }
-    }
-  );
-
-  return false;
-}
-
-function update_billing_field(field) {
-  if (copy_box_checked) {
-    $('#edit-panes-billing-billing' + field.id.substring(28)).val($(field).val());
-  }
-}
 
 /**
  * Apply the selected address to the appropriate fields in the cart form.
@@ -78,7 +13,7 @@ function apply_address(type, address_str) {
   }
 
   eval('var address = ' + address_str + ';');
-  
+
   $('#edit-' + type + '-first-name').val(address.first_name).trigger('change');
   $('#edit-' + type + '-last-name').val(address.last_name).trigger('change');
   $('#edit-' + type + '-phone').val(address.phone).trigger('change');
@@ -98,3 +33,63 @@ function apply_address(type, address_str) {
 
   $('#edit-' + type + '-zone').val(address.zone).trigger('change');
 }
+
+Drupal.behaviors.wishlist = function(context) {
+  $("#delivery-pane input[name='panes[delivery][delivery_address_select]']").change(function() {
+    if ($("#delivery-pane input[name='panes[delivery][delivery_address_select]']:checked").val() == 'wishlist_address') {
+      $('#delivery-pane .address-pane-table').slideUp();
+      $('#edit-panes-billing-copy-address-wrapper input').attr('checked', false);
+      $('#edit-panes-billing-copy-address-wrapper').hide();
+      $('#billing-pane .address-pane-table').slideDown();
+      $('#edit-panes-quotes-quote-button').click();
+    }
+    else {
+      $('#delivery-pane .address-pane-table').slideDown();
+      $('#billing-pane .address-pane-table').slideDown();
+      $('#edit-panes-billing-copy-address-wrapper').show();
+      
+      if ($("#delivery-pane input[name='panes[delivery][delivery_address_select]']:checked").val() == 'new_address') {
+        $('#delivery-pane input.form-text').val('');
+      }
+      if ($("#delivery-pane input[name='panes[delivery][delivery_address_select]']:checked").val() == 'saved_address') {
+        delivery_address_apply('delivery',$("#select-saved-address").val());
+      }
+    }
+  });
+  $("#select-saved-address").change(function() {
+    delivery_address_apply('delivery',this.value);
+  });
+  $("select#edit-panes-billing-billing-address-select").change(function() {
+    delivery_address_apply('billing',this.value);
+  });
+}
+
+function delivery_address_apply(type,addr) {
+  if (addr == '0') {
+    return;
+  }
+  eval('var address = ' + addr + ';');
+  var temp = type + '-' + type;
+  $('#edit-panes-' + temp + '-first-name').val(address.first_name);
+  $('#edit-panes-' + temp + '-last-name').val(address.last_name);
+  $('#edit-panes-' + temp + '-phone').val(address.phone);
+  $('#edit-panes-' + temp + '-company').val(address.company);
+  $('#edit-panes-' + temp + '-street1').val(address.street1);
+  $('#edit-panes-' + temp + '-street2').val(address.street2);
+  $('#edit-panes-' + temp + '-city').val(address.city);
+  $('#edit-panes-' + temp + '-postal-code').val(address.postal_code);
+
+  if ($('#edit-panes-' + temp + '-country').val() != address.country) {
+    $('#edit-panes-' + temp + '-country').val(address.country);
+    try {
+      uc_update_zone_select('edit-panes-' + temp + '-country', address.zone);
+    }
+    catch (err) { }
+  }
+
+  $('#edit-panes-' + temp + '-zone').val(address.zone);
+}
+
+$(document).ready(function() { 
+  $("#delivery-pane input[name='panes[delivery][delivery_address_select]']").trigger('change');
+});
